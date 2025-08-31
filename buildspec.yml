@@ -1,35 +1,33 @@
+---
 version: 0.2
-
 phases:
   install:
     commands:
-      - wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-      - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+      - wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee
+        /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg]
+        https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee
+        /etc/apt/sources.list.d/hashicorp.list
       - apt update && apt install -y terraform
-
   pre_build:
     commands:
       - terraform init
-
   build:
-    commands: |
-      if [ $HOUR -eq 7 ]; then
-        echo "Running terraform apply at 7 AM"
-        terraform plan -out=tfplan
-        terraform apply -auto-approve tfplan
-      elif [ $HOUR -eq 04 ]; then
-        echo "Running terraform destroy at 7 PM"
-        terraform destroy -auto-approve
-      else
-        echo "Not running at designated time. Current hour is $HOUR"
-        exit 0
-      fi
-
+    commands:
+      - |
+        #!/bin/bash
+        if [[ "$HOUR" == "7" ]]; then
+          echo "Running terraform apply at 7 AM"
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
+        elif [[ "$HOUR" == "19" ]]; then
+          echo "Running terraform destroy at 7 PM"
+          terraform destroy -auto-approve
+        else
+          echo "Not running at designated time. Current hour is $HOUR"
+          exit 0
+        fi
   post_build:
     commands:
       - echo "Cleaning up..."
       - rm -f tfplan
-
-artifacts:
-  files:
-    - '**/*'
