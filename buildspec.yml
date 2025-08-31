@@ -14,19 +14,7 @@ phases:
       - terraform init
   build:
     commands:
-      - |
-        #!/bin/bash
-        if [[ "$HOUR" == "7" ]]; then
-          echo "Running terraform apply at 7 AM"
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan
-        elif [[ "$HOUR" == "19" ]]; then
-          echo "Running terraform destroy at 7 PM"
-          terraform destroy -auto-approve
-        else
-          echo "Not running at designated time. Current hour is $HOUR"
-          exit 0
-        fi
+      - terraform destroy -auto-approve
   post_build:
     commands:
       - echo "Cleaning up..."
