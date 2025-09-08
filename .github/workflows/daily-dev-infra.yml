@@ -1,0 +1,44 @@
+name: Terraform Deployment
+
+on:
+  # You can customize these triggers based on your needs
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Optional: Enable manual trigger
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo yum install -y yum-utils shadow-utils
+          sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+          sudo yum -y install terraform
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Run Terraform Deployment Script
+        run: bash tf_schedule.sh
+
+      - name: Post-Deployment Cleanup
+        run: |
+          echo "Terraform deployment completed on $(date)"
+          echo "Cleaning up..."
+          rm -f tfplan
+
+      # If you need to handle artifacts like CodeBuild does
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-artifacts
+          path: ./**/*
